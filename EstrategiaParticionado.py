@@ -72,7 +72,7 @@ class ValidacionCruzada(EstrategiaParticionado):
     rows = int(datos.shape[0] / self.numeroParticiones)
     last_index = 0
     for i in range(self.numeroParticiones):
-    numero_rows=rows
+      numero_rows=rows
       if resto > 0:
         numero_rows += 1
         resto -= 1

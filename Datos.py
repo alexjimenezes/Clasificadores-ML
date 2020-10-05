@@ -11,7 +11,7 @@ class Datos:
     def __init__(self, nombreFichero):
 
         # Read file with pandas
-        
+        file = pd.read_csv(nombreFichero)
 
         self.nominalAtributos = np.ones(len(file.dtypes), dtype=bool)
         # If the type of the column is a string / object the value in the array is True

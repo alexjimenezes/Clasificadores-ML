@@ -50,7 +50,11 @@ class ClasificadorNaiveBayes(Clasificador):
 
   # TODO: implementar
   def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
-    file = pd.read_csv(nombreFichero)
+    %crear un diccionario cuyas keys son clases y los argumentos son los ejemplos pertenecientes a dichas clases
+
+    %calcular las probabilidades a priori de las clases implicadas
+
+    %calcular la tabla de probabilidadaes a posteriori tablaProb (CLASES, ATRIBUTOS)
 
 	pass
     
@@ -58,4 +62,5 @@ class ClasificadorNaiveBayes(Clasificador):
     
   # TODO: implementar
   def clasifica(self,datostest,atributosDiscretos,diccionario):
+    %computar por la formula toda la vaina 
     pass

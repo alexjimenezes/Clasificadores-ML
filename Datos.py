@@ -11,7 +11,7 @@ class Datos:
     def __init__(self, nombreFichero):
 
         # Read file with pandas
-        file = pd.read_csv(nombreFichero)
+        
 
         self.nominalAtributos = np.ones(len(file.dtypes), dtype=bool)
         # If the type of the column is a string / object the value in the array is True
@@ -60,3 +60,6 @@ class Datos:
         for id in range(len(idx)):
             matrix[id] = self.datos[idx[id]]
         return matrix
+
+if __name__ == '__main__':
+    datos = Datos('./ConjuntoDatos/tic-tac-toe.data')

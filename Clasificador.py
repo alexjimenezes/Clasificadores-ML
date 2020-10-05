@@ -1,11 +1,10 @@
 from abc import ABCMeta,abstractmethod
 
 
-class Clasificador:
+class Clasificador(object, metaclass=ABCMeta):
   
-  # Clase abstracta
-  __metaclass__ = ABCMeta
-  
+  def __init__(self):
+    pass
   # Metodos abstractos que se implementan en casa clasificador concreto
   @abstractmethod
   # TODO: esta funcion debe ser implementada en cada clasificador concreto
@@ -38,17 +37,21 @@ class Clasificador:
     # - Para validacion cruzada: en el bucle hasta nv entrenamos el clasificador con la particion de train i
     # y obtenemos el error en la particion de test i
     # - Para validacion simple (hold-out): entrenamos el clasificador con la particion de train
-    # y obtenemos el error en la particion test. Otra opción es repetir la validación simple un número especificado de veces, obteniendo en cada una un error. Finalmente se calcularía la media.
+    # y obtenemos el error en la particion test. Otra opciï¿½n es repetir la validaciï¿½n simple un nï¿½mero especificado de veces, obteniendo en cada una un error. Finalmente se calcularï¿½a la media.
 	pass  
 
 ##############################################################################
 
 class ClasificadorNaiveBayes(Clasificador):
 
- 
+  def __init__(self, tablaProb):
+    self.tablaProb = np.empty()
+
 
   # TODO: implementar
   def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
+    file = pd.read_csv(nombreFichero)
+
 	pass
     
      

@@ -31,8 +31,8 @@ class Datos:
         self.diccionario = dict()
 
         # We iterate column per column
-        contador = 0
         for j in range(tmp_datos.shape[1]):
+            contador = 0
             # If the column is nominal we get a set of its objects
             if self.nominalAtributos[j]:
                 self.diccionario[file.columns[j]] = dict()
@@ -53,6 +53,8 @@ class Datos:
             else:
                 for i in range(tmp_datos.shape[0]):
                     self.datos[i, j] = self.diccionario[file.columns[j]][tmp_datos[i][j]]
+        
+        # TODO: self.headers = list(file.columns)
 
     # This method will give back a matrix composed of the index passed by argument
     def extraeDatos(self, idx):
@@ -63,3 +65,4 @@ class Datos:
 
 if __name__ == '__main__':
     datos = Datos('./ConjuntoDatos/tic-tac-toe.data')
+    # TODO: print(datos.headers)

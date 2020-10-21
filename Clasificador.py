@@ -1,10 +1,8 @@
 from abc import ABCMeta,abstractmethod
-
+import numpy as np
 
 class Clasificador(object, metaclass=ABCMeta):
   
-  def __init__(self):
-    pass
   # Metodos abstractos que se implementan en casa clasificador concreto
   @abstractmethod
   # TODO: esta funcion debe ser implementada en cada clasificador concreto
@@ -15,18 +13,18 @@ class Clasificador(object, metaclass=ABCMeta):
     pass
   
   
-  @abstractmethod
+"""   @abstractmethod
   # TODO: esta funcion debe ser implementada en cada clasificador concreto
   # devuelve un numpy array con las predicciones
   def clasifica(self,datosTest,atributosDiscretos,diccionario):
-    pass
+    pass 
   
   
   # Obtiene el numero de aciertos y errores para calcular la tasa de fallo
   # TODO: implementar
   def error(self,datos,pred):
     # Aqui se compara la prediccion (pred) con las clases reales y se calcula el error    
-	pass
+	  pass
     
     
   # Realiza una clasificacion utilizando una estrategia de particionado determinada
@@ -38,29 +36,72 @@ class Clasificador(object, metaclass=ABCMeta):
     # y obtenemos el error en la particion de test i
     # - Para validacion simple (hold-out): entrenamos el clasificador con la particion de train
     # y obtenemos el error en la particion test. Otra opci�n es repetir la validaci�n simple un n�mero especificado de veces, obteniendo en cada una un error. Finalmente se calcular�a la media.
-	pass  
+  	  pass  
+"""
 
 ##############################################################################
 
 class ClasificadorNaiveBayes(Clasificador):
 
-  def __init__(self, tablaProb):
-    self.tablaProb = np.empty()
+  def __init__(self):
+    self.tablaProb = []
 
 
   # TODO: implementar
   def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
-    %crear un diccionario cuyas keys son clases y los argumentos son los ejemplos pertenecientes a dichas clases
 
-    %calcular las probabilidades a priori de las clases implicadas
+    # TODO: headers = datostrain[0]
+    matrix = datostrain
+    matrixPorClases = []
+    numClases = len(set(matrix[:,-1]))
+    numTypesPerAttribute = []
+    self.mediaVarianza = np.zeros((matrix.shape[1]-1, numClases))
 
-    %calcular la tabla de probabilidadaes a posteriori tablaProb (CLASES, ATRIBUTOS)
+    # Separa matriz por clases
+    for c in range(numClases):
+      matrixPorClases.append([])
+      for i in range(matrix.shape[0]):
+        if matrix[i, -1] == c:
+          matrixPorClases[c].append(matrix[i, :])
+        
 
-	pass
-    
-     
-    
+    # TODO: usar diccionarios para obtener longitus de typos
+    for i in range(matrix.shape[1]-1):
+      if atributosDiscretos[i]:
+        numTypesPerAttribute.append(len(set(matrix[:][i])))
+      else:
+        for clase in range(numClases):
+          self.mediaVarianza[i, c] = [np.mean(matrixPorClases[clase][:][i]), np.std(matrixPorClases[clase][:][i])]
+    print(self.mediaVarianza)
+
+    #self.mediaVarianza[i, j]=([np.mean(matrix[:,i]), np.std(matrix[:,i])])
+
+    for k in range(len(numTypesPerAttribute)):
+      self.tablaProb.append(np.zeros((numClases, numTypesPerAttribute[k])))
+
+    # Sumar 1 cuando se encuentre un ejemplo
+    for i in range(matrix.shape[1]-1):
+      if atributosDiscretos[i]:
+        for l in range(matrix.shape[0]):
+          self.tablaProb[i][int(matrix[l, -1]),int(matrix[l,i])] += 1
+
+    # Laplace en caso de ser necesario
+    for i in range(matrix.shape[1]-1):
+      if atributosDiscretos[i]:
+        flag = 0
+        for c in self.tablaProb[i]:
+          for a in range(len(c)):
+            if c[a] == 0:
+              aplicar_laplace(i, a)
+              flag = 1
+            break
+          if flag == 1:
+            break
+
   # TODO: implementar
   def clasifica(self,datostest,atributosDiscretos,diccionario):
-    %computar por la formula toda la vaina 
-    pass
+    # computar por la formula  
+
+   pass
+  def aplicar_laplace(self, idxatributo, idxvalorcolumna):
+    self.tablaProb[idxatributo][:,idxvalorcolumna] += 1

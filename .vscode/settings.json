@@ -1,3 +1,6 @@
 {
-    "python.pythonPath": "home/alex/anaconda3/envs/FAA_P0/bin/python"
+    "python.pythonPath": "C:\\Users\\lenovo\\miniconda3\\envs\\Tensorflow\\python.exe",
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
 }

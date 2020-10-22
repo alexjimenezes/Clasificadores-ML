@@ -28,10 +28,13 @@ class Clasificador(object, metaclass=ABCMeta):
   def error(self,datos,pred):
     # Aqui se compara la prediccion (pred) con las clases reales y se calcula el error  
     contador = 0
+    # print("***********************")
     for a, b in zip(datos[:, -1], pred):
+      # print(str(a) + "----" + str(b))
       if a == b:
         contador += 1
     error_prediccion = 1 - contador / len(pred)
+    # print(error_prediccion)
     return error_prediccion    
 
     """ particiones_vs  = vs.creaParticiones(datos.datos)

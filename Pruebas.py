@@ -8,9 +8,9 @@ from Clasificador import *
 
 if __name__ == "__main__":
 
-    datos = Datos('german.data')
+    datos = Datos('lentillas.data')
     vs = ValidacionSimple(0.30, 10)
-    vc = ValidacionCruzada(80)
+    vc = ValidacionCruzada(5)
     nb = ClasificadorNaiveBayes()
     error_simple = nb.validacion(vs, datos)
     print("Error medio en particion con validación simple: " + str(error_simple))

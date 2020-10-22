@@ -23,26 +23,48 @@ class Clasificador(object, metaclass=ABCMeta):
   def clasifica(self,datosTest,atributosDiscretos,diccionario):
     pass 
 
-"""
-  
+
   # Obtiene el numero de aciertos y errores para calcular la tasa de fallo
-  # TODO: implementar
   def error(self,datos,pred):
-    # Aqui se compara la prediccion (pred) con las clases reales y se calcula el error    
-	  pass
-    
-    
+    # Aqui se compara la prediccion (pred) con las clases reales y se calcula el error  
+    contador = 0
+    for a, b in zip(datos[:, -1], pred):
+      if a == b:
+        contador += 1
+    error_prediccion = 1 - contador / len(pred)
+    return error_prediccion    
+
+    """ particiones_vs  = vs.creaParticiones(datos.datos)
+    naive_bayes = ClasificadorNaiveBayes()
+    naive_bayes.entrenamiento(datos.extraeDatos(particiones_vs[1].indicesTrain), datos.nominalAtributos, datos.diccionario)
+    clasificacion = naive_bayes.clasifica(datos.extraeDatos(particiones_vs[1].indicesTest), datos.nominalAtributos, datos.diccionario) """
   # Realiza una clasificacion utilizando una estrategia de particionado determinada
-  # TODO: implementar esta funcion
-  def validacion(self,particionado,dataset,clasificador,seed=None):
+  def validacion(self,particionado,dataset,seed=None):
        
+    self.reset_clasificador()
     # Creamos las particiones siguiendo la estrategia llamando a particionado.creaParticiones
     # - Para validacion cruzada: en el bucle hasta nv entrenamos el clasificador con la particion de train i
     # y obtenemos el error en la particion de test i
     # - Para validacion simple (hold-out): entrenamos el clasificador con la particion de train
     # y obtenemos el error en la particion test. Otra opci�n es repetir la validaci�n simple un n�mero especificado de veces, obteniendo en cada una un error. Finalmente se calcular�a la media.
-  	  pass  
-"""
+    particiones_idx = particionado.creaParticiones(dataset.datos)
+
+    error_total = 0
+    for i in range(len(particiones_idx)):
+      particion_train = dataset.extraeDatos(particiones_idx[i].indicesTrain)
+      particion_test = dataset.extraeDatos(particiones_idx[i].indicesTest)
+      self.entrenamiento(particion_train, dataset.nominalAtributos, dataset.diccionario)
+      prediccion = self.clasifica(particion_test, dataset.nominalAtributos, dataset.diccionario)
+      error_total += self.error(particion_test, prediccion)
+      # Reiniciamos el clasificador
+      self.reset_clasificador()
+    
+    error_total /= len(particiones_idx)
+    return error_total
+  
+  @abstractmethod
+  def reset_clasificador(self):
+    pass
 
 ##############################################################################
 
@@ -54,7 +76,6 @@ class ClasificadorNaiveBayes(Clasificador):
     self.apriori = dict()
 
 
-  # TODO: implementar
   def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
     # Nombre de los atributos
     atributos = diccionario["Columnas"][:-1]
@@ -142,3 +163,8 @@ class ClasificadorNaiveBayes(Clasificador):
       predicciones[row] = max(multiplicador, key=multiplicador.get)
     
     return predicciones
+
+  def reset_clasificador(self):
+    self.tablaNominales = dict()
+    self.tablaContinuos = dict()
+    self.apriori = dict()

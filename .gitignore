@@ -1,0 +1,4 @@
+# Dont track these folders
+.vscode/
+.ipynb_checkpoints/
+.__pycache__/

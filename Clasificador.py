@@ -37,14 +37,10 @@ class Clasificador(object, metaclass=ABCMeta):
     # print(error_prediccion)
     return error_prediccion    
 
-    """ particiones_vs  = vs.creaParticiones(datos.datos)
-    naive_bayes = ClasificadorNaiveBayes()
-    naive_bayes.entrenamiento(datos.extraeDatos(particiones_vs[1].indicesTrain), datos.nominalAtributos, datos.diccionario)
-    clasificacion = naive_bayes.clasifica(datos.extraeDatos(particiones_vs[1].indicesTest), datos.nominalAtributos, datos.diccionario) """
+  
   # Realiza una clasificacion utilizando una estrategia de particionado determinada
-  def validacion(self,particionado,dataset,seed=None):
+  def validacion(self,particionado,clasificador,dataset,seed=None):
        
-    self.reset_clasificador()
     # Creamos las particiones siguiendo la estrategia llamando a particionado.creaParticiones
     # - Para validacion cruzada: en el bucle hasta nv entrenamos el clasificador con la particion de train i
     # y obtenemos el error en la particion de test i
@@ -56,11 +52,10 @@ class Clasificador(object, metaclass=ABCMeta):
     for i in range(len(particiones_idx)):
       particion_train = dataset.extraeDatos(particiones_idx[i].indicesTrain)
       particion_test = dataset.extraeDatos(particiones_idx[i].indicesTest)
-      self.entrenamiento(particion_train, dataset.nominalAtributos, dataset.diccionario)
+      if clasificador["nombre"] == "naiveBayes":
+        self.entrenamiento(particion_train, dataset.nominalAtributos, dataset.diccionario, laplace=clasificador["laplace"])
       prediccion = self.clasifica(particion_test, dataset.nominalAtributos, dataset.diccionario)
       error_total += self.error(particion_test, prediccion)
-      # Reiniciamos el clasificador
-      self.reset_clasificador()
     
     error_total /= len(particiones_idx)
     return error_total
@@ -79,7 +74,8 @@ class ClasificadorNaiveBayes(Clasificador):
     self.apriori = dict()
 
 
-  def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
+  def entrenamiento(self,datostrain,atributosDiscretos,diccionario, laplace=False):
+    self.reset_clasificador()
     # Nombre de los atributos
     atributos = diccionario["Columnas"][:-1]
     # Nombre de la columna de clase
@@ -119,8 +115,9 @@ class ClasificadorNaiveBayes(Clasificador):
         for c in range(n_clases):
           for row in separado[c]:
             self.tablaNominales[i][int(row[i]), c] += 1
+        #self.tablaNominalesLaPlace[i] = np.array(self.tablaNominales[i], copy=True)
         # Apply laplace where neccessary
-        if np.any(self.tablaNominales[i] == 0):
+        if laplace == True and np.any(self.tablaNominales[i] == 0):
           self.tablaNominales[i] += 1
       
       # If it is continues
@@ -155,7 +152,10 @@ class ClasificadorNaiveBayes(Clasificador):
             value = int(datostest[row][i])
             sum_class = np.sum(self.tablaNominales[i][:, c])
             ocurrencia_value = self.tablaNominales[i][value, c]
-            prob = ocurrencia_value / sum_class
+            try:
+              prob = ocurrencia_value / sum_class
+            except ZeroDivisionError:
+              prob = 0
             multiplicador[c] *= prob
           else:
             value = datostest[row][i]

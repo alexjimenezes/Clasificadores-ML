@@ -8,13 +8,13 @@ from Clasificador import *
 
 if __name__ == "__main__":
 
-    datos = Datos('lentillas.data')
+    datos = Datos('./ConjuntoDatos/german.data')
     vs = ValidacionSimple(0.30, 10)
     vc = ValidacionCruzada(5)
     nb = ClasificadorNaiveBayes()
-    error_simple = nb.validacion(vs, datos)
+    error_simple = nb.validacion(vs, {"nombre": "naiveBayes", "laplace": False}, datos)
     print("Error medio en particion con validación simple: " + str(error_simple))
-    error_cruzada = nb.validacion(vc, datos)
+    error_cruzada = nb.validacion(vc, {"nombre": "naiveBayes", "laplace": False}, datos)
     print("Error medio en particion con validación cruzada: " + str(error_cruzada))
 
     """     particiones_vs  = vs.creaParticiones(datos.datos)

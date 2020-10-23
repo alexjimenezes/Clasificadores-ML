@@ -71,14 +71,16 @@ class ValidacionCruzada(EstrategiaParticionado):
     resto = datos.shape[0] % self.numeroParticiones
     rows = int(datos.shape[0] / self.numeroParticiones)
     last_index = 0
+    indices = list(range(datos.shape[0]))
+    random.shuffle(indices)
     for i in range(self.numeroParticiones):
       numero_rows=rows
       if resto > 0:
         numero_rows += 1
         resto -= 1
       p = Particion()
-      p.indicesTest = list(range(last_index, last_index + numero_rows))
-      p.indicesTrain = list(range(last_index)) + list(range(last_index + numero_rows, datos.shape[0])) 
+      p.indicesTest = indices[last_index : last_index + numero_rows]
+      p.indicesTrain = indices[:last_index] + indices[last_index + numero_rows : datos.shape[0]] 
       last_index += numero_rows
       self.particiones.append(p)
   

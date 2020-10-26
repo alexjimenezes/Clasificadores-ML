@@ -64,6 +64,34 @@ class Clasificador(object, metaclass=ABCMeta):
   def reset_clasificador(self):
     pass
 
+  #Obtiene la representación en el espacio ROC del modelo que ha afirmado un vector de predicciones "pred"
+  
+  def espacioROC(self,particionado,clasificador,dataset,seed=None):
+    particiones_idx = particionado.creaParticiones(dataset.datos)
+    TPR = 0
+    FPR = 0
+    numPart = len(particiones_idx)
+    for i in range(numPart):
+      
+      particion_train = dataset.extraeDatos(particiones_idx[i].indicesTrain)
+      particion_test = dataset.extraeDatos(particiones_idx[i].indicesTest)
+      if clasificador["nombre"] == "naiveBayes":
+        self.entrenamiento(particion_train, dataset.nominalAtributos, dataset.diccionario, laplace=clasificador["laplace"])
+      y = particion_test[:, -1]
+      numClases = len(set(y))
+      pred = self.clasifica(particion_test, dataset.nominalAtributos, dataset.diccionario)
+      for j in range(numClases):
+        TP = TN = FP = FN = 0
+        for p, r in zip(pred, y):       
+          TP += np.sum(p ==  r and r == j)/len(particiones_idx)
+          TN += np.sum( r != j and p != j)/len(particiones_idx)
+          FP += np.sum(p != r and p == j)/len(particiones_idx)
+          FN += np.sum(p != j and r == j)/len(particiones_idx)
+        TPR = TPR + TP/(TP + FN)
+        FPR = FPR + FP/(FP + TN)
+
+    return [TPR/(numClases*numPart), FPR/(numClases*numPart)]
+
 ##############################################################################
 
 class ClasificadorNaiveBayes(Clasificador):

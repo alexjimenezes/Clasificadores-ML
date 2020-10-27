@@ -1,6 +1,7 @@
 from abc import ABCMeta,abstractmethod
 import numpy as np
 from scipy.stats import norm
+import math
 
 MEDIA_V = 0
 DESVIACION_V = 1
@@ -199,3 +200,107 @@ class ClasificadorNaiveBayes(Clasificador):
     self.tablaNominales = dict()
     self.tablaContinuos = dict()
     self.apriori = dict()
+
+class CalsificadorVecinosProximos(Clasificador):
+
+  def __init__(self):
+    self.datosTrain = None
+
+  def entrenamiento(self,datostrain,atributosDiscretos=None,diccionario=None):
+
+    self.reset_clasificador()
+    # Coger todas las columnas de atributos
+    datos = datostrain
+    n_atts = datos.shape[1] - 1
+    # Inicializar matriz de distancias
+
+    # Normalizamos los datostrain usando la Z-Score
+    for i in range(n_atts):
+      media = np.mean(datos[:, i])
+      varianza = np.std(datos[:, i])
+      datos[:, i] = (datos[:, i] - media) / varianza
+    
+    self.datosTrain = datos
+
+  def clasifica(self,datostest,distancia,k=5,atributosDiscretos=None,diccionario=None):
+
+    n_rows_train = self.datosTrain.shape[0]
+    n_rows_test = datostest.shape[0]
+    n_atts = datostest.shape[1] - 1
+
+    matrizDistancias = np.empty((n_rows_train, n_rows_test))
+
+    # Normalizamos los datostest usando la Z-Score
+    for i in range(n_atts):
+      media = np.mean(datostest[:, i])
+      varianza = np.std(datostest[:, i])
+      datostest[:, i] = (datostest[:, i] - media) / varianza
+
+    # Calculamos una matriz de distancias de todos los puntos del dataset de test con train
+    for i in range(n_rows_train):
+      for j in range(n_rows_test):
+        matrizDistancias[i, j] = distancia.calcular(self.datosTrain[i, :-1], datostest[j, :-1])
+    
+    prediccion = []
+    # Calculamos los k vecinos mas cercanos a cada punto de test
+    for i in range(matrizDistancias.shape[1]):
+      col = matrizDistancias[:, i]
+      closestNeighbors = np.argsort(col)[:k]
+      # Cogemos las clases pertenecientes a dichos vecinos
+      clases = []
+      for elem in closestNeighbors:
+        clases.append(self.datosTrain[elem, -1])
+      # Devolvemos la clase más repetida
+      prediccion.append(np.bincount(clases).argmax())
+
+    return np.array(prediccion)
+  
+  def reset_clasificador(self):
+    self.datosTrain = None
+
+
+
+
+
+class Distancia(object, metaclass=ABCMeta):
+  @abstractmethod
+  def calcular(self, p1, p2):
+    pass
+
+
+class DistanciaEuclidea(Distancia):
+
+  # Calcula la distancia euclidea entre dos puntos cualesquiera 
+  def calcular(self, p1, p2):
+    if np.all(np.equal(p1, p2)):
+      return 0
+
+    suma = 0
+    for e1, e2 in zip(p1, p2):
+      suma += pow(e1 - e2, 2)
+    
+    return math.sqrt(suma)
+
+
+class DistanciaManhattan(Distancia):
+
+  # Calcula la distancia manhattan entre dos puntos cualesquiera 
+  def calcular(self, p1, p2):
+    if np.array_equal(p1, p2):
+      return 0
+
+    suma = 0
+    for e1, e2 in zip(p1, p2):
+      suma += abs(e1 - e2)
+
+    return suma
+  
+
+
+    
+
+  # Calcula la distancia mahalanobis entre dos puntos cualesquiera
+
+
+
+

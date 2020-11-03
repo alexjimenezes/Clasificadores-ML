@@ -11,16 +11,13 @@ from sklearn.naive_bayes import GaussianNB
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    # dataset = Datos('./ConjuntoDatos/pima-indians-diabetes.csv')
-    # dataset = Datos('./ConjuntoDatos/german.data')
-    dataset = Datos('./ConjuntoDatos/tic-tac-toe.data')
-    # dataset = Datos('./ConjuntoDatos/pima-indians-diabetes.csv')
-    # Validacion simple con 100 iteraciones
+
+    dataset = Datos('./ConjuntoDatos/pima-indians-diabetes.csv')
+    # Validacion simple con 10 iteraciones
     vs = ValidacionSimple(0.30, 10)
 
     # Creación del clasificador con d euclidea
-    knn = CalsificadorVecinosProximos()
-    de = DistanciaEuclidea()
+    reg_log = ClasificadorRegresionLogistica()
 
     # Coge una particion de muestra
     particiones_idx = vs.creaParticiones(dataset.datos)
@@ -31,10 +28,10 @@ if __name__ == "__main__":
         particion_train = dataset.extraeDatos(particion.indicesTrain)
         particion_test = dataset.extraeDatos(particion.indicesTest)
         # Entrena el clasificador
-        knn.entrenamiento(particion_train)
+        reg_log.entrenamiento(particion_train, step=0.1, epocas=1000)
         # Clasifica
-        pred = knn.clasifica(particion_test, de, k=11)
+        pred = reg_log.clasifica(particion_test)
         # Calculamos el error
-        error += knn.error(particion_test, pred)
+        error += reg_log.error(particion_test, pred)
 
     print(error/len(particiones_idx))

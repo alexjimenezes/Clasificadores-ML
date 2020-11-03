@@ -296,11 +296,54 @@ class DistanciaManhattan(Distancia):
     return suma
   
 
+class ClasificadorRegresionLogistica(Clasificador):
+  
+  # Vector de coeficientes que modificará el método de entrenamiento
+  def __init__(self):
+    self.coef = None
 
+  def entrenamiento(self, datostrain, atributosDiscretos=None, diccionario=None, step=1, epocas=1000):
+    self.reset_clasificador()
+    n_rows_train = datostrain.shape[0]
+    n_atts = datostrain.shape[1] - 1
+
+    # inicializa los coeficientes del (-0'5, 0'5)
+    self.coef = np.random.rand(n_atts) - 0.5
+
+    # Normalizamos los datostest usando la Z-Score
+    for i in range(n_atts):
+      media = np.mean(datostrain[:, i])
+      varianza = np.std(datostrain[:, i])
+      datostrain[:, i] = (datostrain[:, i] - media) / varianza
+
+    # Hacemos el descenso de gradiente
+    for e in range(epocas):
+      for r in range(n_rows_train):
+        s = sigmoid(self.coef, datostrain[r, :-1])
+        self.coef -= step * (s - datostrain[r, -1]) * datostrain[r, :-1]
+
+  
+  # Clasifica en funcion d ela salida de la funcion sigmoidal
+  def clasifica(self,datosTest,atributosDiscretos=None, diccionario=None):
+    n_rows_test = datosTest.shape[0]
+    pred = np.empty(n_rows_test)
+
+    for r in range(n_rows_test):
+      if sigmoid(self.coef, datosTest[r, :-1]) > 0.5:
+        pred[r] = 0
+      else:
+        pred[r] = 1
+    
+    return pred
+
+  def reset_clasificador(self):
+    self.coef = None
     
 
   # Calcula la distancia mahalanobis entre dos puntos cualesquiera
 
-
-
-
+# Calcula la funión sigmoidal sobre los coef y el vector indicado
+# Devuelve un valor entre 0 y 1
+def sigmoid(w, x):
+  a = np.dot(w, x)
+  return 1 / (1 + np.exp(-a))

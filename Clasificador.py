@@ -201,10 +201,11 @@ class ClasificadorNaiveBayes(Clasificador):
 
 class ClasificadorVecinosProximos(Clasificador):
 
-  def __init__(self, k, distancia):
+  def __init__(self, k, distancia, normalizar=True):
     self.datosTrain = None
     self.k = k
     self.distancia = distancia
+    self.normalizar = normalizar
 
   def entrenamiento(self,datostrain,atributosDiscretos,diccionario):
 
@@ -231,10 +232,11 @@ class ClasificadorVecinosProximos(Clasificador):
     matrizDistancias = np.empty((n_rows_train, n_rows_test))
 
     # Normalizamos los datostest usando la Z-Score
-    for i in range(n_atts):
-      media = np.mean(datostest[:, i])
-      varianza = np.std(datostest[:, i])
-      datostest[:, i] = (datostest[:, i] - media) / varianza
+    if self.normalizar:
+      for i in range(n_atts):
+        media = np.mean(datostest[:, i])
+        varianza = np.std(datostest[:, i])
+        datostest[:, i] = (datostest[:, i] - media) / varianza
 
     # Calculamos una matriz de distancias de todos los puntos del dataset de test con train
     V = np.cov(np.transpose(self.datosTrain[:, :-1]))

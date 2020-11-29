@@ -39,7 +39,7 @@ class Datos:
 
         tmp_datos = df.to_numpy()
         
-        # IMPORTANTE: Esto solo uncionará si el campo de clase es nominal debido a que no estará en el
+        # IMPORTANTE: Esto solo funcionará si el campo de clase es nominal debido a que no estará en el
         # diccionario si no es así. Para esta práctica cumple la funcionalidad requerida, pero es importante
         # tenerlo en cuenta para futuras extensiones
 

@@ -5,7 +5,7 @@ from setuptools._vendor.ordered_set import OrderedSet
 
 from Distancia import *
 import math
-from random import choices
+from random import choices, randint, random
 
 MEDIA_V = 0
 DESVIACION_V = 1
@@ -333,6 +333,10 @@ def sigmoid(w, x):
 #   Mutacion ----
 #   Crossover con 2 descendientes
 
+ELITE = 0.05
+# Prob de mutacion = 0.5 %
+MUTA = 0.05
+
 class AlgoritmoGenetico(Clasificador):
     
     def __init__(self, tamano_poblacion, epocas):
@@ -392,23 +396,67 @@ class AlgoritmoGenetico(Clasificador):
                     indi.append(1)
         return indi
 
+    """
+    Aplicamos una funcion de crossover en un punto"""
+    def obtener_descendientes(self, p1, p2, longitud):
+        # Seleccionamos pto de corte
+        cross = randint(1, longitud - 2)
+        desc1 = p1[:cross] + p2[cross:]
+        desc2 = p2[:cross] + p1[cross:]
+        return [desc1, desc2]
+
+    def mutar_descendientes(self, descendienes, longitud):
+        for des in descendienes:
+            if random() <= MUTA:
+                pos = randint(0, longitud - 1)
+                # Cambia 0 por 1 y 1 por 0
+                des[pos] = abs(des[pos] - 1)
+        return descendienes
+
 
     def entrenamiento(self, datosTrain, atributosDiscretos, diccionario):
         self.n_atts = datosTrain.shape[1] - 1
         # Will hold the number of features per attribute
         self.att_features = []
         self.att_features_vals = []
+        # Number of individuals that pass automatically to next generation
+        select_elite = math.floor(ELITE * self.tamano_poblacion)
         # Total number of features
         total_features = 0
         for i in range(self.n_atts):
-            new = list(OrderedSet(datosTrain[:, i]))
+            new = sorted(list(set(datosTrain[:, i])))
             self.att_features_vals.append(new)
             features = len(new)
             total_features += features
             self.att_features.append(features)
 
+        # Generamos una poblacion
         self.poblacion = self.genera_poblacion(total_features)
-        
+        for i in range(self.epocas):
+            # Obtenemos los pesos de la poblacion guardada en self.poblacion
+            porcentajes = self.clasifica(datosTrain, None, None)
+            maxi = np.max(porcentajes)
+            mean = np.mean(porcentajes)
+            porcent_2 = np.power(np.array(porcentajes), 2)
+            if (i + 1) % 5 == 0:
+                print("Epoca " + str(i) + ": \tAcierto medio = {0:.4f}\t Acierto Max = {1:.4f}\n".format(mean, maxi))
+            pesos = porcent_2 / np.sum(porcent_2)
+            nueva_poblacion = []
+            # Creamos poblacion descendiente
+            while len(nueva_poblacion) < self.tamano_poblacion - select_elite - 1:
+                # Elegimos progenitores utilizando el metodo de la ruleta
+                # Es importante que sea sin reemplazamiento para que los progentiores sean individuos distintos
+                prog_idx = np.random.choice(list(range(self.tamano_poblacion)), size=2, replace=False, p=pesos)
+                prog1 = self.poblacion[prog_idx[0]]
+                prog2 = self.poblacion[prog_idx[1]]
+                nueva_poblacion += self.obtener_descendientes(prog1, prog2, total_features)
+            # Mutamos los descendientes directos
+            nueva_poblacion = self.mutar_descendientes(nueva_poblacion, total_features)
+            # Añadimos la elite
+            elite = [indi for _, indi in sorted(zip(porcentajes, self.poblacion), reverse=True)][:self.tamano_poblacion - len(nueva_poblacion)]
+            nueva_poblacion += elite
+            # sustituimos poblacion y volvemos a empezar
+            self.poblacion = nueva_poblacion
 
     """
     Tiene que ser capaz de parsear las reglas
@@ -424,6 +472,7 @@ class AlgoritmoGenetico(Clasificador):
                 if self.aplicar_regla(regla, indi) == vector[-1]:
                     aciertos += 1
             porcentajes.append(aciertos / n_datos)
+        return porcentajes
 
 
     def reset_clasificador(self):

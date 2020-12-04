@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import numpy as np
+from multipledispatch import dispatch
 from scipy.stats import norm
-from setuptools._vendor.ordered_set import OrderedSet
 
 from Distancia import *
 import math
@@ -350,6 +350,7 @@ class AlgoritmoGenetico(Clasificador):
         # Lista con lista de valores posibles de cada att ordenados
         self.att_features_vals = None
         self.poblacion = None
+        self.best_rule = None
 
     """
     Genera un individuo de longitud l
@@ -365,10 +366,25 @@ class AlgoritmoGenetico(Clasificador):
         return [self.genera_individuo(longitud) for _ in range(self.tamano_poblacion)]
 
     """
-    Funcion que tiene que llama a clasifica y compara el error.
+    Calcular Fitness
+        1. Clasifica con todas las reglas
+        2. Calcula el porcentaje de acierto
+        3. Lo eleva al cuadrado
     """
-    def calcular_fitness(self, poblacion):
-        pass
+    def calcular_fitness(self, datos_train):
+        clasificacion = self.clasifica_todos(datos_train)
+        y_train = datos_train[:, -1]
+        accuracy = []
+        for vector in clasificacion:
+            suma = 0
+            for a, b in zip(vector, y_train):
+                if a == b:
+                    suma += 1
+            accuracy.append(suma / len(y_train))
+        max_acc = np.max(accuracy)
+        mean_acc = np.mean(accuracy)
+        value = np.power(np.array(accuracy), 2)
+        return value, mean_acc, max_acc
 
     """
     Regla: lista de [1,0]
@@ -387,7 +403,9 @@ class AlgoritmoGenetico(Clasificador):
     def convertir_a_individuo(self, vector):
         indi = []
         for att in range(len(vector)):
-            posicion = self.att_features_vals[att].index(vector[att])
+            # We realize that if a number
+            # posicion = self.att_features_vals[att].index(vector[att])
+            posicion = vector[att]
             # Posibilidad de usar diccionario creado al inicio para reducir coste de acceso y operaciones
             for i in range(self.att_features[att]):
                 if i != posicion:
@@ -415,6 +433,7 @@ class AlgoritmoGenetico(Clasificador):
 
 
     def entrenamiento(self, datosTrain, atributosDiscretos, diccionario):
+        self.reset_clasificador()
         self.n_atts = datosTrain.shape[1] - 1
         # Will hold the number of features per attribute
         self.att_features = []
@@ -434,13 +453,12 @@ class AlgoritmoGenetico(Clasificador):
         self.poblacion = self.genera_poblacion(total_features)
         for i in range(self.epocas):
             # Obtenemos los pesos de la poblacion guardada en self.poblacion
-            porcentajes = self.clasifica(datosTrain, None, None)
-            maxi = np.max(porcentajes)
-            mean = np.mean(porcentajes)
-            porcent_2 = np.power(np.array(porcentajes), 2)
+            p = self.calcular_fitness(datosTrain)
+            val, mean, maxi = self.calcular_fitness(datosTrain)
             if (i + 1) % 5 == 0:
                 print("Epoca " + str(i) + ": \tAcierto medio = {0:.4f}\t Acierto Max = {1:.4f}\n".format(mean, maxi))
-            pesos = porcent_2 / np.sum(porcent_2)
+            # Convertimos los pesos en una lista con suma = 1
+            pesos = val / np.sum(val)
             nueva_poblacion = []
             # Creamos poblacion descendiente
             while len(nueva_poblacion) < self.tamano_poblacion - select_elite - 1:
@@ -453,29 +471,42 @@ class AlgoritmoGenetico(Clasificador):
             # Mutamos los descendientes directos
             nueva_poblacion = self.mutar_descendientes(nueva_poblacion, total_features)
             # Añadimos la elite
-            elite = [indi for _, indi in sorted(zip(porcentajes, self.poblacion), reverse=True)][:self.tamano_poblacion - len(nueva_poblacion)]
+            elite = [indi for _, indi in sorted(zip(val, self.poblacion), reverse=True)][:self.tamano_poblacion - len(nueva_poblacion)]
             nueva_poblacion += elite
+            # Escpgemos la mejor regla
+            self.best_rule = elite[0]
             # sustituimos poblacion y volvemos a empezar
             self.poblacion = nueva_poblacion
 
     """
-    Tiene que ser capaz de parsear las reglas
-    Crea una lista con el porcentaje de error de cada regla/individuo
+    Clasifica
+    Clasifica utilizando todo el conjunto de reglas
+    Devuelve una lista de listas que contiene la clasificación de cada regla
     """
-    def clasifica(self, datosTest, atributosDiscretos, diccionario):
-        porcentajes = []
-        n_datos = datosTest.shape[0]
+    def clasifica_todos(self, datosTest):
+        resultado = []
         for regla in self.poblacion:
-            aciertos = 0
+            resultado_regla = []
             for vector in datosTest:
                 indi = self.convertir_a_individuo(vector[:-1])
-                if self.aplicar_regla(regla, indi) == vector[-1]:
-                    aciertos += 1
-            porcentajes.append(aciertos / n_datos)
-        return porcentajes
+                resultado_regla.append(self.aplicar_regla(regla, indi))
+            resultado.append(resultado_regla)
+        return resultado
 
+    """
+    Clasifica
+    Overload del método anterior que permite pasar una regla al método que se utilizará para clasificar.
+    Devuelve la clasificación del dataset con esa regla
+    """
+    def clasifica(self, datosTest, atributosDiscretos, diccionario):
+        resultado = []
+        for vector in datosTest:
+            indi = self.convertir_a_individuo(vector[:-1])
+            resultado.append(int(self.aplicar_regla(self.best_rule, indi)))
+        return resultado
 
+    # Funcion que reinicia la instancia de clase
     def reset_clasificador(self):
-        pass
+        self.__init__(self.tamano_poblacion, self.epocas)
 
 

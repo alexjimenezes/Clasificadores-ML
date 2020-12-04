@@ -80,5 +80,5 @@ class Datos:
         return matrix
 
 if __name__ == '__main__':
-    datos = Datos('./ConjuntoDatos/tic-tac-toe.data')
+    datos = Datos('./ConjuntoDatos/tic-tac-toe.csv')
     # TODO: print(datos.headers)

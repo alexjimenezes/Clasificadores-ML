@@ -431,8 +431,13 @@ class AlgoritmoGenetico(Clasificador):
                 des[pos] = abs(des[pos] - 1)
         return descendienes
 
-
+    """"
+    Entrena el alforitmo creando sucesivas poblaciiones,
+    Aplicando cruces de progenitores para crear hijos,
+    Mutar hijos y elegir elite que pasa automáticamente.
+    """
     def entrenamiento(self, datosTrain, atributosDiscretos, diccionario):
+        print("Comenzando entrenamiento:\n\n")
         self.reset_clasificador()
         self.n_atts = datosTrain.shape[1] - 1
         # Will hold the number of features per attribute
@@ -477,6 +482,8 @@ class AlgoritmoGenetico(Clasificador):
             self.best_rule = elite[0]
             # sustituimos poblacion y volvemos a empezar
             self.poblacion = nueva_poblacion
+
+        print("El mejor individuo es: " + str(self.best_rule) + "\n")
 
     """
     Clasifica

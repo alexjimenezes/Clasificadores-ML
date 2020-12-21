@@ -458,7 +458,6 @@ class AlgoritmoGenetico(Clasificador):
         self.poblacion = self.genera_poblacion(total_features)
         for i in range(self.epocas):
             # Obtenemos los pesos de la poblacion guardada en self.poblacion
-            p = self.calcular_fitness(datosTrain)
             val, mean, maxi = self.calcular_fitness(datosTrain)
             if (i + 1) % 5 == 0:
                 print("Epoca " + str(i) + ": \tAcierto medio = {0:.4f}\t Acierto Max = {1:.4f}\n".format(mean, maxi))
